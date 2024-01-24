@@ -13,9 +13,9 @@ app=Flask(__name__)
 
 CORS(app)
 app.config["JWT_SECRET_KEY"] = "5T52472er8a7m272a00o" 
-app.config['SQLALCHEMY_DATABASE_URI']='mysql://terama_20819u:terama_20819p@localhost/terama'
+app.config['SQLALCHEMY_DATABASE_URI']='mysql://terama_20819u:terama_20819p@localhost/terama_20819u'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
-app.config['UPLOAD_VIDEO_FOLDER'] = '/home/xrdpuser/Desktop/uploads/test'
+app.config['UPLOAD_VIDEO_FOLDER'] = '/home/xrdpuser/Desktop/uploads/Videos'
 app.config['ALLOWED_VIDEO_EXTENSIONS'] = {'mp4', 'mov', 'avi', 'wmf' 'flv', 'webm','mkv'}
 
 
@@ -64,50 +64,43 @@ def index():
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_VIDEO_EXTENSIONS']
-@app.route('/upload',methods=['POST'])
+@app.route('/upload', methods=['POST'])
 def add_posts():
-    if 'videos' not in request.files:
-        return 'No file part', 400
+    user_id = request.form.get('User')
+    videoName = request.form.get('Video')
+
+    if 'videos' not in request.files or not user_id:
+        return 'Invalid request format', 400
+
     videos = request.files.getlist('videos')
     if len(videos) == 0:
         return 'No video selected for uploading', 400
     for video in videos:
         if video and allowed_file(video.filename):
             filename = secure_filename(video.filename)
-            title = os.path.splitext(filename)[0]
-            new_filename = secrets.token_hex(15)
-            new_filename = new_filename+"_"+filename[-6:]
+            new_filename = videoName
+
             if not os.path.exists(app.config['UPLOAD_VIDEO_FOLDER']):
                 os.makedirs(app.config['UPLOAD_VIDEO_FOLDER'])
+
             video.save(os.path.join(app.config['UPLOAD_VIDEO_FOLDER'], new_filename))
-            Uniid  = request.form['Uniid']
-            Title = title
+            Uniid = secrets.token_hex(4)
+            Title = filename
             Video = new_filename
-            User = request.form['User']
+            User = user_id
             Visible = 0
-            create_post = Posts(Uniid,Title,Video,User,Visible)
+
+            create_post = Posts(Uniid, Title, Video, User, Visible)
             db.session.add(create_post)
             db.session.commit()
-            print(create_post)
         else:
             return 'Invalid file type', 400
-    return jsonify({'Success': True,'message':'File saved as {}'.format(new_filename)}), 200
-    # 
-    # request.json['Title']
-    # Body = request.json['Body']
-    # Image = request.json['Image']
-    # 
-    # Categorie  = request.json['Categorie']
-    # User = request.json['User']
-    # Visible = request.json['Visible']
-    # addpost = Posts(Uniid,Title,Body,Image,Video,Categorie,User,Visible)
-    # db.session.add(addpost)
-    # db.session.commit()
-    # newuser = user.jsonify(addpost)
-    # if newuser:
-    #     return "200" 
+
+    return jsonify({'Success': True, 'message': 'Files uploaded successfully'}), 200
 
 """  Posts Fonctions end  """
+
+
 if __name__ == '__main__':
     #DEBUG is SET to TRUE. CHANGE FOR PROD
     app.run(port=5000,debug=True)
