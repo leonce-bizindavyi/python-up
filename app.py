@@ -13,7 +13,7 @@ app=Flask(__name__)
 
 CORS(app)
 app.config["JWT_SECRET_KEY"] = "5T52472er8a7m272a00o" 
-app.config['SQLALCHEMY_DATABASE_URI']='mysql://terama_20819u:terama_20819p@localhost/terama_20819u'
+app.config['SQLALCHEMY_DATABASE_URI']='mysql://root:terama_20819p@localhost/terama_20819u'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 app.config['UPLOAD_VIDEO_FOLDER'] = '/home/xrdpuser/Desktop/uploads/Videos'
 app.config['ALLOWED_VIDEO_EXTENSIONS'] = {'mp4', 'mov', 'avi', 'wmf' 'flv', 'webm','mkv'}
