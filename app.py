@@ -130,4 +130,4 @@ def add_posts():
 
 if __name__ == '__main__':
     #DEBUG is SET to TRUE. CHANGE FOR PROD
-    app.run(port=5000,debug=True)
+    app.run(port=5000,debug=False)
