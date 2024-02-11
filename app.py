@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
 import secrets
+from moviepy.editor import VideoFileClip
 
 
 app=Flask(__name__)
@@ -64,6 +65,25 @@ def index():
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_VIDEO_EXTENSIONS']
+
+def compress_video(video_path, output_path):
+    try:
+        # Load the input video
+        clip = VideoFileClip(video_path)
+
+        # Define the codec and create the VideoWriter object
+        clip.write_videofile(output_path, codec='libx264', audio_codec='aac')
+
+        print("Compression completed. Compressed video with audio saved at:", output_path)
+
+        # Remove the original uncompressed video
+        os.remove(video_path)
+
+        return True, "Compression successful!"
+    except Exception as e:
+        return False, str(e)
+
+
 @app.route('/upload', methods=['POST'])
 def add_posts():
     user_id = request.form.get('User')
@@ -83,7 +103,14 @@ def add_posts():
             if not os.path.exists(app.config['UPLOAD_VIDEO_FOLDER']):
                 os.makedirs(app.config['UPLOAD_VIDEO_FOLDER'])
 
-            video.save(os.path.join(app.config['UPLOAD_VIDEO_FOLDER'], new_filename))
+            original_video_path = os.path.join(app.config['UPLOAD_VIDEO_FOLDER'], filename)
+            video.save(original_video_path)
+
+            # Call the compress_video function
+            success, message = compress_video(original_video_path, os.path.join(app.config['UPLOAD_VIDEO_FOLDER'], new_filename))
+            if not success:
+                return 'Compression failed: ' + message, 500
+
             Uniid = secrets.token_hex(4)
             Title = filename
             Video = new_filename
@@ -103,4 +130,4 @@ def add_posts():
 
 if __name__ == '__main__':
     #DEBUG is SET to TRUE. CHANGE FOR PROD
-    app.run(port=5000,debug=False)
+    app.run(port=5000,debug=True)
